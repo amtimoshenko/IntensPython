@@ -1,0 +1,29 @@
+#include <iostream>
+using namespace std;
+int main() {
+    cout << "Введите атомный номер щелочного металла:";
+    int num;
+    cin >> num;
+    switch(num)
+    {
+        case 3:
+        cout << "Карминно-красный";
+        break;
+        case 11:
+        cout << "Жёлтый";
+        break;
+        case 19:
+        cout << "Фиолетовый ";
+        break;
+        case 37:
+        cout << "Буро-красный";
+        break;
+        case 55:
+        cout << "Фиолетово-красный";
+        break;
+        default:
+        cout << "Неверное число";
+        break;
+    }
+    return 0;
+}
