@@ -1,7 +1,0 @@
-n=int(input("n-"));
-sum=0;
-for i in range(0,n):
-   d=int(input("d-"));
-   sum+=d*pow(10,i);
-   print("sum = ", sum);
-print("sum -", sum);
