@@ -1,0 +1,25 @@
+#include <iostream>
+using namespace std;
+
+int main() 
+{
+  
+    cout << "Введите целое число:";
+    int num;
+    cin >> num;
+    cout << "Введите заданное число а:";
+    int a;
+    cin >> a;
+    int p=1;
+    while(num>0) 
+    {
+      int d=num%10;
+      p*=d;
+      num /=10;
+    }
+    if(p%a==0)
+    {
+      cout << "Число num кратно произведению числа а";
+    }
+    return 0;
+}
