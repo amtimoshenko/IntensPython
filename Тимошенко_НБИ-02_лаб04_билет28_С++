@@ -1,0 +1,23 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Введите количество чисел:";
+    int kol;
+    cin >> kol;
+    int num;
+    cout << "Введите числа:";
+    int count=0;
+    int sum=0;
+    for(int i=0; i<kol; i++)
+    {
+        cin >> num;
+        count++;
+        if(count%3==0)
+        {
+            sum+=num;
+        }
+    }
+    cout << "Сумма каждого третьего:" << sum;
+    return 0;
+}
