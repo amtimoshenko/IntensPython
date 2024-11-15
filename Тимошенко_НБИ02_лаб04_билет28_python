@@ -1,0 +1,4 @@
+
+for k in range(20, 51):
+      if k%5!=0 and k%3==0:
+          print(k)
