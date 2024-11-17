@@ -1,0 +1,12 @@
+import math
+print("Введите первое число: ")
+a=int(input())
+print("Введите второе число: ")
+b=int(input())
+while a>1 and a<20 and b>1 and b<20:
+    geo=math.sqrt(abs(a)*abs(b))
+    print("Среднее геометрическое: ")    
+    print(geo)
+    break
+else:
+    print("Числа не входят в диапазон от 1 до 20")
