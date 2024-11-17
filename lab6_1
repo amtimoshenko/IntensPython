@@ -1,0 +1,22 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+	cout << "Введите натуральное n:";
+	int n;
+	cin >> n;
+	if(n<=0)
+	{
+	    cout << "Вы ввели не натуральное число";
+	}
+	float sum=0.0;
+	int i=1;
+	do 
+	{
+	  sum+=1.0/(2*i*i);
+	  i++;
+	}
+	while(i<=n);
+	cout << "Сумма ряда: " << sum;
+	return 0;
+}
