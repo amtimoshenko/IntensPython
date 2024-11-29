@@ -1,0 +1,9 @@
+m=int(input("Введите количество строк: "))
+n=int(input("Введите количество столбцов: "))
+a=[]
+for i in range(m):
+    row=list(map(int, input(f"Введите {n} чисел для строки {i+1}, разделенных пробелами: ").split()))
+    a.append(row)
+mi=[min(row) for row in a]
+ma=max(mi)
+print("Максимальный из минимальных элементов строк: ", ma)
