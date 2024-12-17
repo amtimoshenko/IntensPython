@@ -1,0 +1,9 @@
+import math
+
+def DegToRad(d):
+    rad=d*math.pi/180
+    return rad
+degrees=int(input("Введите значение в градусах: "))
+d=float(degrees)
+r=DegToRad(d)
+print(f"{d} градусов = {r} радианам")
