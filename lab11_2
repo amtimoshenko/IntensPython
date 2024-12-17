@@ -1,0 +1,17 @@
+def symmetric(m):
+    n=len(m)
+    for i in range(n):
+        for j in range(n):
+            if m[i][j]!=m[j][i]:
+                return False
+    return True
+n=int(input("Введите размер квадратной матрицы: "))
+m=[]
+print("Введите элементы матрицы через пробел, по строкам: ")
+for i in range(n):
+    row=list(map(int, input().split()))
+    m.append(row)
+if symmetric(m):
+    print("Матрица симметричная")
+else:
+    print("Матрица несимметричная")
