@@ -1,0 +1,36 @@
+#include <iostream>
+using namespace std;
+
+int CountA(int a[], int n) {
+    int count=0;
+    int ccount=1;
+    for(int i=1; i<n; i++)
+    {
+        if(a[i]>a[i-1])
+        {
+            ccount++;
+        } 
+        else
+        {
+            if(ccount>1) count++;
+            ccount=1;
+        }
+    }
+    if(ccount>1) count++;
+    return count;
+}
+
+int main() {
+    int n;
+    cout << "Введите размер массива: ";
+    cin >> n;
+    int a[n];
+    cout << "Введите элементы массива: ";
+    for(int i=0; i<n; i++)
+    {
+        cin >> a[i];
+    }
+    int res=CountA(a, n);
+    cout << "Количество участков с возрастающими элементами: " << res;
+    return 0;
+}
