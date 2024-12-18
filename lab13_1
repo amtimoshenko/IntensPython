@@ -1,0 +1,48 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+struct Dictaphone {
+    string country;
+    double memory;
+    int modes;
+    double price;
+};
+void sortPrice( Dictaphone d[], int size) {
+    for(int i=0; i<size-1; i++)
+    {
+        for(int j=0; j<size-1; j++) 
+        {
+            if(d[j].price>d[j+1].price)
+            {
+                swap(d[j], d[j+1]);
+            }
+        }
+    }
+}
+int main() {
+    cout << "Введите количество диктафонов: ";
+    int n;
+    cin >> n;
+    Dictaphone d[];
+    for(int i=0; i<n; i++)
+    {
+        cout << "Введите данные для диктафона " << i+1 << ":" << endl;
+        cout << "Страна производитель: " ;
+        getline(cin, d[i].country);
+        cout << "Объём памяти: ";
+        cin >> d[i].memory;
+        cout << "Число режимов записи: ";
+        cin >> d[i].modes;
+        cout << "Цена: ";
+        cin >> d[i].price;
+    }
+    sortPrice( Dictaphone d[], int size);
+    cout << endl << "Диктофоны после сортировки по цене: " << endl;
+     for(int i=0; i<n; i++)
+    {
+        cout << d[i].country << ", " << d[i].memory << "GB, " << d[i].modes << ", " << d[i].price << endl;
+    }
+    return 0;
+}
