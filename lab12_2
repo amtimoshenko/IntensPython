@@ -1,0 +1,24 @@
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Order {
+    string accPlat;
+    string accPol;
+    double sum;
+};
+int main() {
+    Order myOrder;
+    cout << "Введите расчетный счёт плательщика (в России 20 цифр): ";
+    cin >> myOrder.accPlat;
+    cout << "Введите расчетный счёт получателя (20 цифр): ";
+    cin >> myOrder.accPol;
+    cout << "Введите перечисляемую сумму: ";
+    cin >> myOrder.sum;
+    cout << "Информация о платеже: " << endl;
+    cout << "Расчетный счёт плательщика: " << myOrder.accPlat << endl;
+    cout << "Расчетный счёт получателя: " << myOrder.accPol << endl;
+    cout << "Перечисляемая сумма: " << myOrder.sum << endl;
+    return 0;
+}
