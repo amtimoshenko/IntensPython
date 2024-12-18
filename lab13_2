@@ -1,0 +1,49 @@
+
+#include <iostream>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+struct Cup {
+    string country;
+    double volume;
+    string material;
+    double price;
+};
+void sortPrice( Cup cups[], int size) {
+    for(int i=0; i<size-1; i++)
+    {
+        for(int j=0; j<size-1; j++) 
+        {
+            if(cups[j].price>cups[j+1].price)
+            {
+                swap(cups[j], cups[j+1]);
+            }
+        }
+    }
+}
+int main() {
+    cout << "Введите количество кружек: ";
+    int n;
+    cin >> n;
+    Cup cups[];
+    for(int i=0; i<n; i++)
+    {
+        cout << "Введите данные для кружки " << i+1 << ":" << endl;
+        cout << "Страна производитель: " ;
+        getline(cin, cups[i].country);
+        cout << "Объём: ";
+        cin >> cups[i].volume;
+        cout << "Материал: ";
+        cin >> cups[i].material;
+        cout << "Цена: ";
+        cin >> cups[i].price;
+    }
+    sortPrice( Cup cups[], int size);
+    cout << endl << "Кружки после сортировки по цене: " << endl;
+     for(int i=0; i<n; i++)
+    {
+        cout << cups[i].country << ", " << cups[i].volume << "ml, " << cups[i].material << ", " << cups[i].price << endl;
+    }
+    return 0;
+}
