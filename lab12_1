@@ -1,0 +1,28 @@
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Scooter {
+    string firma;
+    double power;
+    int speeds;
+    double price;
+};
+int main() {
+    Scooter myScooter;
+    cout << "Введите фирму производителя: ";
+    getline(cin, myScooter.firma);
+    cout << "Введите мощность: ";
+    cin >> myScooter.power;
+    cout << "Введите число скоростей: ";
+    cin >> myScooter.speeds;
+    cout << "Введите цену: ";
+    cin >> myScooter.price;
+    cout << "Характеристики скутера: " << endl;
+    cout << "Фирма производителя: " << myScooter.firma << endl;
+    cout << "Мощность: " << myScooter.power << endl;
+    cout << "Число скоростей: " << myScooter.speeds << endl;
+    cout << "Цена: " << myScooter.price << endl;
+    return 0;
+}
