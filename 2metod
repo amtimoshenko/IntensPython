@@ -1,0 +1,42 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+ float ex(float x)
+    {
+        return pow(x,3)-0.2*x*x+0.5*x-1;
+    }
+    float si(float x)
+    {
+       return 3*pow(x,2)-0.4*x+0.5;
+    }
+    float ta(float (*f) (float), float (*df) (float), float x0, float epsilon, int max_iter)
+    {
+        float x=x0;
+        for (int i=0; i++; i<max_iter)
+        {
+            float f_x=f(x);
+            float f_de=df(x);
+            float x_new=x-f_x/f_de;
+            if(fabs(x_new-x)<epsilon)
+            {
+                return x_new, i+1;
+            }
+            x=x_new;
+        }
+        return  max_iter;
+    }
+int main()
+{
+   int x0=1;
+   float epsilon=1e-6;
+   float max_iter=100;
+   float root=ta(ex, si, x0, epsilon, max_iter);
+   float iterations=ta(ex, si, x0, epsilon, max_iter);
+   cout << "Корень уравнения: " << root << endl;
+   cout << "Количество итераций: " << iterations << endl;
+   float fun=ex(root);
+   cout << "Значение функции: " << root << "=" << fun;
+}
+
