@@ -1,0 +1,50 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+double ex(double x)
+{
+    return x*x*x-0.2*x*x+0.5*x-1;
+}
+double di(double (*f) (double), double a, double b, double eps)
+{
+    if(f(a)*f(b)>0)
+    {
+        return NAN;
+    }
+    int iter=0;
+    while((b-a)/2>eps)
+    {
+        double c=(a+b)/2;
+        iter+=1;
+        if(f(c)==0)
+        {
+            return c;
+        }
+        else if(f(a)*f(c)<0)
+        {
+            b=c;
+        }
+        else
+        {
+            a=c;
+        }
+        cout << "Количество итераций: " << iter << endl;
+        return (a+b)/2;
+    }
+}
+
+
+int main ()
+{
+    double a=0;
+    double b=3;
+    double eps=1e-10;
+    double root=di(ex, a, b, eps);
+    cout << "Корень уравнения: " << root << endl;
+    double fun=ex(root);
+    cout << "Значение функции: " << root << " = " << fun;
+    return 0;
+
+}
