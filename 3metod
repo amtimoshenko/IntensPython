@@ -1,0 +1,51 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+float ex(float x)
+{
+    return x*x*x-0.2*x*x+0.5*x-1;
+}
+float chord(float (*f) (float), float a, float b, float eps, int max_iter)
+{
+    int iteration=0;
+    if(f(a)*f(b)>=0)
+    {
+        return 0.0;
+    }
+    float x=a-(b-a)*f(a)/(f(b)-f(a));
+    for(int i=0; i<max_iter; i++)
+    {
+        if(fabs(f(x))<eps)
+        {
+            break;
+        }
+        if(f(a)*f(x)<0)
+        {
+            float b=x;
+        }
+        else
+        {
+            float a=x;
+        }
+        float x=a-(b-a)*f(a)/(f(b)-f(a));
+        iteration+=1;
+    }
+    cout << "Количество итераций: " << iteration << endl;
+    return x;
+}
+
+int main ()
+{
+    float a=0;
+    float b=3;
+    float eps=1e-6;
+    int max_iter=1000;
+    float root=chord(ex, a, b, eps, max_iter);
+    cout << "Корень уравнения: " << root << endl;
+    float fun=ex(root);
+    cout << "Значение функции: " << root << " = " << fun;
+    return 0;
+
+}
