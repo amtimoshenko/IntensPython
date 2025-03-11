@@ -1,0 +1,35 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+const double eps=1e-10;
+double f(double t, double v, double a)
+{
+    return a - (asin((9.8*t)/(2*v)))*180/3.14;
+}
+double BinSolve(double t, double v)
+{
+    double left = 0;
+    double right = 10000;
+    double mid;
+    while((right-left)>eps)
+    {
+        mid=(right+left)/2;
+        if(f(t,v,mid)*f(t,v,left)<0)
+        {
+            right=mid;
+        }
+        else left = mid;
+    }
+    return (left + right ) /2;
+}
+
+
+int main ()
+{
+    double t=1;
+    double v=10;
+    double root = BinSolve(t,v);
+    cout << "Root " << root << endl;
+    return 0;
+
+}
