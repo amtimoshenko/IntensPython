@@ -1,0 +1,26 @@
+import math
+
+EPS = 1e-10
+
+def f(t, v, a):
+    return a - (math.asin((9.8 * t) / (2 * v)) * 180 / math.pi)
+
+def bin_solve(t, v):
+    left = 0
+    right = 10000
+    while (right - left) > EPS:
+        mid = (right + left) / 2
+        if f(t, v, mid) * f(t, v, left) < 0:
+            right = mid
+        else:
+            left = mid
+    return (left + right) / 2
+
+def main():
+    t = 1
+    v = 10
+    root = bin_solve(t, v)
+    print("Root:", root)
+
+if __name__ == "__main__":
+    main()
