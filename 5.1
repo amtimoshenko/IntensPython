@@ -1,0 +1,59 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+const double G = 9.81; 
+
+double calculateFallTime(double H) {
+    return sqrt(2 * H / G);
+}
+
+double calculateDistance(double U, double H) {
+    return U * calculateFallTime(H);
+}
+
+double calculateFallTimeBinarySearch(double H, double tolerance = 0.0001) {
+    double left = 0.0;
+    double right = 100.0; 
+    double middle;
+
+    auto height_difference = [&](double t) { return H - (G * t * t) / 2; };
+
+    while (right - left > tolerance) {
+        middle = (left + right) / 2.0;
+
+        if (height_difference(middle) > 0) {
+            left = middle;
+        }
+        else {
+            right = middle;
+        }
+    }
+
+    return (left + right) / 2.0;
+}
+
+double calculateDistanceBinarySearch(double U, double H) {
+    return U * calculateFallTimeBinarySearch(H);
+}
+
+int main() {
+    double H, U;
+
+    cout << "Vvedite H: ";
+    cin >> H;
+
+    cout << "Vvedite V: ";
+    cin >> U;
+
+    double distanceAnalytic = calculateDistance(U, H);
+
+    double distanceBinarySearch = calculateDistanceBinarySearch(U, H);
+
+
+    cout << "Distance (analitic): " << distanceAnalytic << endl;
+    cout << "Distance (root): " << distanceBinarySearch <<  endl;
+
+    return 0;
+}
