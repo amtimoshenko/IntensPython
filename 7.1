@@ -1,0 +1,66 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+double calculateV1(double S, double t) 
+{
+    return S / t;
+}
+
+double calculateV2BinarySearch(double S, double V, double t, double tolerance = 0.0001)
+{
+    double left = 0.0;  
+    double right = S / t; 
+
+    auto time_difference = [&](double v2) 
+        {
+        double v1 = calculateV1(S, t);
+        return (S / v1 + S / v2) - (2 * S) / V;
+        };
+
+    double middle;
+    while (right - left > tolerance) {
+        middle = (left + right) / 2.0;
+
+        if (time_difference(middle) > 0)
+        {
+            left = middle;
+        }
+        else 
+        {
+            right = middle;
+        }
+    }
+    return (left + right) / 2.0;
+}
+
+
+int main() {
+    double V, S, t;
+
+    cout << "Vvedite V: ";                                    
+    cin >> V;
+
+    cout << "Vvedite S: ";
+    cin >> S;
+
+    cout << "Vvedite T: ";
+    cin >> t;
+
+    if (t >= (2 * S) / V) {
+        cout << "Error. Time very higher" << endl;
+        return 1;
+    }
+
+    double V1 = calculateV1(S, t);
+
+    double V2_analytic = calculateV2(S, V, t);
+
+    double V2_binary_search = calculateV2BinarySearch(S, V, t);
+
+    cout << "V1: " << V1 <<  endl;
+    cout << "V2: " << V2_binary_search <<  endl;
+
+    return 0;
+}
