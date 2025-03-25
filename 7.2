@@ -1,0 +1,36 @@
+def calculate_v1(S, t):
+    return S / t
+
+def calculate_v2_binary_search(S, V, t, tolerance=0.0001):
+    left = 0.0  
+    right = S / t 
+
+    def time_difference(v2):
+        v1 = calculate_v1(S, t)
+        return (S / v1 + S / v2) - (2 * S) / V
+
+    while right - left > tolerance:
+        middle = (left + right) / 2.0
+
+        if time_difference(middle) > 0:
+            left = middle
+        else:
+            right = middle
+
+    return (left + right) / 2.0
+
+
+if __name__ == "__main__":
+    V = float(input("Введите среднюю скорость V : "))
+    S = float(input("Введите расстояние S: "))
+    t = float(input("Введите время t: "))
+
+    if t >= (2 * S) / V:
+        print("Ошибка: время движения из A в B слишком велико.")
+        exit(1)
+
+    V1 = calculate_v1(S, t)
+    V2_binary_search = calculate_v2_binary_search(S, V, t)
+
+    print(f"V1 (скорость из A в B): {V1:.6f} м/с")
+    print(f"V2 (скорость из B в A): {V2_binary_search:.6f} м/с")
