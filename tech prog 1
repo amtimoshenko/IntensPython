@@ -1,0 +1,176 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+struct Node
+{
+	string data;
+	int data2;
+	double data3;
+	Node* next;
+
+	Node(string name, int num, double price) : data(name), data2(num), data3(price), next(nullptr) {}
+};
+
+class List
+{
+private:
+	Node* head;
+	int size;
+public:
+	List() : head(nullptr), size(0) {}
+
+	void print() const
+	{
+		Node* current = head;
+		for (int i = 0; i < size; i++)
+		{
+			cout << "Product " << i + 1 << endl;
+			cout << "Product name: " << current->data << endl;
+			cout << "Number of products: " << current->data2 << endl;
+			cout << "Product price: " << current->data3 << endl;
+			cout << "----------------------------------" << endl;
+			current = current->next;
+		}
+	}
+
+	void push_back(const string& name, int num, double price)
+	{
+		if (size == 0)
+		{
+			head = new Node(name, num, price);
+		}
+		else
+		{
+			Node* new_node = new Node(name, num, price);
+			Node* current = head;
+			for (int i = 0; i < size - 1; i++)
+			{
+				current = current->next;
+			}
+			current->next = new_node;
+		}
+		size++;
+	}
+
+	void push_front( string name, int num, double price)
+	{
+		if (size == 0)
+		{
+			head = new Node(name, num, price);
+		}
+		else
+		{
+			Node* new_node = new Node(name, num, price);
+			new_node->next = head;
+			head = new_node;
+		}
+		size++;
+	}
+
+	void add_after(const string& name, int num, double price, int index)
+	{
+		if (index >= size or index < 0)
+		{
+			cout << "Incorrect index" << endl;
+			return;
+		}
+		if (index == size - 1)
+		{
+			push_back(name, num, price);
+		}
+		else
+		{
+			Node* new_node = new Node(name, num, price);
+			Node* current = head;
+			for (int i = 0; i < index-1; i++)
+			{
+				current = current->next;
+			}
+			Node* next = current->next;
+			current->next = new_node;
+			new_node->next = next;
+			size++;
+		}
+	}
+
+	void add_before(const string& name, int num, double price, int index)
+	{
+		if (index >= size or index < 0)
+		{
+			cout << "Incorrect index" << endl;
+			return;
+		}
+		if (index == 0)
+		{
+			push_front(name, num, price);
+		}
+		else
+		{
+			Node* new_node = new Node(name, num, price);
+			Node* current = head;
+			for (int i = 0; i < index - 1; i++)
+			{
+				current = current->next;
+			}
+			Node* next = current->next;
+			current->next = new_node;
+			new_node->next = next;
+			size++;
+		}
+	}
+
+	void toDelete(int index)
+	{
+		if (index >= size or index < 0)
+		{
+			cout << "Incorrect index" << endl;
+			return;
+		}
+		if (index == 0)
+		{
+			Node* toDelete = head;
+			head = head->next;
+			delete toDelete;
+			return;
+		}
+		else
+		{
+			Node* current = head;
+			for (int i = 0; i < index - 1; i++)
+			{
+				current = current->next;
+			}
+			Node* toDelete = current->next;
+			current->next = toDelete->next;
+			delete toDelete;
+		}
+		size--;
+	}
+};
+
+int main()
+{
+	List Product;
+	Product.push_back("Nuts", 10, 12.5);
+	Product.print();
+	cout << "=========================" << endl << endl;
+
+	Product.push_front("Milk", 15, 15.1);
+	Product.print();
+	cout << "=========================" << endl << endl;
+
+	Product.add_after("Butter", 2, 3.21, 0);
+	Product.print();
+	cout << "=========================" << endl << endl;
+
+	Product.add_before("Eggs", 10, 1.21, 2);
+	Product.print();
+	cout << "=========================" << endl << endl;
+
+	Product.toDelete(1);
+	Product.print();
+
+	return 0;
+}
