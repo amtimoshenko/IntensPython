@@ -1,0 +1,63 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+double calculate_distance(double V, double t)
+{
+    double S1 = V * t;
+    double a = V / t;
+    double S2 = (a * t * t) / 2;
+    return S1 + S2;
+}
+
+    double calculate_distance_alternative(double V, double t) 
+    {
+        return (3 * V * t) / 2.0;
+    }
+
+double find_time_bisection(double V, double S, double tolerance = 1e-6) {
+    double low = 0.0;       
+    double high = 1000.0;       
+    double mid;
+    
+    for (int i = 0; i < 100; ++i) { 
+        mid = (low + high) / 2.0;
+        double distance = calculate_distance(V, mid);
+
+        if (abs(distance - S) < tolerance) {
+            return mid;         }
+        else if (distance < S) {
+            low = mid;  
+        }
+        else {
+            high = mid;  
+        }
+    }
+
+    cout << "Error." << endl;
+    return mid;
+}
+
+
+int main() {
+    double V, S;
+
+    cout << "Enter speed (V): ";
+    cin >> V;
+    cout << "Enter distance (S): ";
+    cin >> S;
+
+
+    double time = find_time_bisection(V, S);
+
+    double distance_formula = calculate_distance(V, time);
+    double distance_alternative = calculate_distance_alternative(V, time);
+
+   
+    cout << "Calculated time (t): " << time << endl;
+    cout << "Distance traveled (S) using formula: " << distance_formula << endl;
+    cout << "Distance traveled (S) using alternative formula: " << distance_alternative << endl;
+
+    return 0;
+}
