@@ -1,0 +1,65 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+double target_function(double T, double A, double omega, double phi0) {
+    return A * sin(omega * T + phi0) - A; 
+}
+
+double find_time_bisection(double A, double omega, double k, double tolerance = 1e-6) {
+    double low = 0.0;
+    double high = 10.0; 
+
+    double phi0 = asin(1.0 / k);
+
+    if (isnan(phi0)) {
+        cerr << "Error" << endl;
+        return numeric_limits<double>::quiet_NaN();
+    }
+
+    for (int i = 0; i < 100; ++i) {
+        double mid = (low + high) / 2.0;
+        double target_value = target_function(mid, A, omega, phi0);
+
+        if (abs(target_value) < tolerance) {
+            return mid;
+        }
+        else if (target_value < 0) {
+            low = mid;
+        }
+        else {
+            high = mid;
+        }
+    }
+
+    return (low + high) / 2.0; 
+}
+
+int main() {
+    double omega, k, A;
+
+    cout << "Enter omega: ";
+    cin >> omega;
+    cout << "Enter k: ";
+    cin >> k;
+    cout << "Enter A: ";
+    cin >> A;
+
+    if (omega <= 0.0) {
+        cerr << "Error: omega must be > 0.0" << endl;
+        return 1;
+    }
+
+    if (k < 1.0) {
+        cerr << "Error: k must be >= 1.0" << endl;
+        return 1;
+    }
+
+    double T = find_time_bisection(A, omega, k);
+
+    cout << "Time T: " << T << endl;
+
+    return 0;
+}
+
