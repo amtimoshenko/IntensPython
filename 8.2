@@ -1,0 +1,44 @@
+import math
+
+def calculate_distance(V, t):
+    """Calculates the distance traveled given speed V and time t."""
+    S1 = V * t
+    a = V / t
+    S2 = (a * t * t) / 2
+    return S1 + S2
+
+def calculate_distance_alternative(V, t):
+    """Calculates the distance traveled using the alternative formula."""
+    return (3 * V * t) / 2.0
+
+def find_time_bisection(V, S, tolerance=1e-6):
+    low = 0.0
+    high = 1000.0  
+
+    for _ in range(100):  
+        mid = (low + high) / 2.0
+        distance = calculate_distance(V, mid)
+
+        if abs(distance - S) < tolerance:
+            return mid
+        elif distance < S:
+            low = mid
+        else:
+            high = mid
+
+    print("Error.")
+    return mid  
+
+if __name__ == "__main__":
+    V = float(input("Enter speed (V): "))
+    S = float(input("Enter distance (S): "))
+
+    time = find_time_bisection(V, S)
+
+    distance_formula = calculate_distance(V, time)
+    distance_alternative = calculate_distance_alternative(V, time)
+
+    print("Calculated time (t):", time)
+    print("Distance traveled (S) using formula:", distance_formula)
+    print("Distance traveled (S) using alternative formula:", distance_alternative)
+
