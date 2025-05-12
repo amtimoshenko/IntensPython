@@ -1,0 +1,28 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+double calculateSum(double x, int maxIterations) {
+    double sum = 0.0;
+    for (int n = 1; n <= maxIterations; ++n) 
+    {
+        sum += (pow(x+2,2*n)) / (n * pow(4, n));
+    }
+    return sum;
+}
+
+int main() {
+    double x;
+    int maxIterations;
+
+    cout << "Vvedite x: ";
+    cin >> x;
+    cout << "Vvedite maxIterations: ";
+    cin >> maxIterations;
+
+    double result = calculateSum(x, maxIterations);
+    cout << "Summa: " << result << endl;
+
+    return 0;
+}
