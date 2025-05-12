@@ -1,11 +1,13 @@
 #include <iostream>
 #include <cmath>
-#include <limits>
+
+using namespace std;
 
 double calculateSum(double x, int maxIterations) {
     double sum = 0.0;
-    for (int n = 1; n <= maxIterations; ++n) {
-        sum += (x * x) / (1 + std::pow(n, 3) * x);
+    for (int n = 1; n <= maxIterations; ++n) 
+    {
+        sum += (x * x) / (1 + pow(n, 3) * x);
     }
     return sum;
 }
@@ -14,13 +16,13 @@ int main() {
     double x;
     int maxIterations;
 
-    std::cout << "Vvedite x: ";
-    std::cin >> x;
-    std::cout << "Vvedite maxIterations: ";
-    std::cin >> maxIterations;
+    cout << "Vvedite x: ";
+    cin >> x;
+    cout << "Vvedite maxIterations: ";
+    cin >> maxIterations;
 
     double result = calculateSum(x, maxIterations);
-    std::cout << "Summa: " << result << std::endl;
+    cout << "Summa: " << result << endl;
 
     return 0;
 }
