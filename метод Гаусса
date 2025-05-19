@@ -1,0 +1,86 @@
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+
+using namespace std;
+
+// Функция для решения системы линейных уравнений методом Гаусса
+vector<double> solveSystem(vector<vector<double>> A, vector<double> b) {
+    int n = A.size();
+    if (n == 0 && A[0].size() != n && b.size() != n) {
+        throw invalid_argument("Некорректные размеры матрицы или вектора");
+    }
+
+    // Прямой ход метода Гаусса
+    for (int col = 0; col < n; ++col) {
+        // Поиск максимального элемента в столбце
+        int max_row = col;
+        for (int row = col + 1; row < n; ++row) {
+            if (abs(A[row][col]) > abs(A[max_row][col])) {
+                max_row = row;
+            }
+        }
+
+        // Перестановка строк
+        swap(A[col], A[max_row]);
+        swap(b[col], b[max_row]);
+
+        // Проверка на нулевой ведущий элемент
+        if (abs(A[col][col]) < 1e-10) {
+            throw runtime_error("There is no single solution.");
+        }
+
+        // Нормализация текущей строки
+        for (int row = col + 1; row < n; ++row) {
+            double factor = A[row][col] / A[col][col];
+            for (int c = col; c < n; ++c) {
+                A[row][c] -= factor * A[col][c];
+            }
+            b[row] -= factor * b[col];
+        }
+    }
+
+    // Обратный ход метода Гаусса
+    vector<double> x(n);
+    for (int row = n - 1; row >= 0; --row) {
+        x[row] = b[row];
+        for (int col = row + 1; col < n; ++col) {
+            x[row] -= A[row][col] * x[col];
+        }
+        x[row] /= A[row][row];
+    }
+
+    return x;
+}
+
+int main() {
+    try {
+        // Матрица коэффициентов
+        vector<vector<double>> A = {
+            {2, 3, 5},
+            {4, 1, 8},
+            {4, 1, 9}
+        };
+
+        // Вектор правых частей
+        vector<double> b = { 5, 6, 2 };
+
+        // Решение системы
+        vector<double> x = solveSystem(A, b);
+
+        // Вывод решения
+        cout << "Solution: [";
+        for (size_t i = 0; i < x.size(); ++i) {
+            if (i != 0) cout << ", ";
+            cout << x[i];
+        }
+        cout << "]" << endl;
+
+    }
+    catch (const exception& e) {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
+    }
+
+    return 0;
+}
