@@ -1,0 +1,62 @@
+import numpy as np
+
+# Функция для решения системы линейных уравнений методом Гаусса
+def solve_system(A, b):
+    n = len(A)
+    if n == 0 or len(A[0]) != n or len(b) != n:
+        raise ValueError("Некорректные размеры матрицы или вектора")
+
+    # Прямой ход метода Гаусса
+    for col in range(n):
+        # Поиск максимального элемента в столбце
+        max_row = col
+        for row in range(col + 1, n):
+            if abs(A[row][col]) > abs(A[max_row][col]):
+                max_row = row
+
+        # Перестановка строк
+        A[col], A[max_row] = A[max_row], A[col]
+        b[col], b[max_row] = b[max_row], b[col]
+
+        # Проверка на нулевой ведущий элемент
+        if abs(A[col][col]) < 1e-10:
+            raise RuntimeError("There is no single solution.")
+
+        # Нормализация текущей строки
+        for row in range(col + 1, n):
+            factor = A[row][col] / A[col][col]
+            for c in range(col, n):
+                A[row][c] -= factor * A[col][c]
+            b[row] -= factor * b[col]
+
+    # Обратный ход метода Гаусса
+    x = [0] * n
+    for row in range(n - 1, -1, -1):
+        x[row] = b[row]
+        for col in range(row + 1, n):
+            x[row] -= A[row][col] * x[col]
+        x[row] /= A[row][row]
+
+    return x
+
+if __name__ == "__main__":
+    try:
+        # Матрица коэффициентов
+        A = [
+            [2, 3, 5],
+            [4, 1, 8],
+            [4, 1, 9]
+        ]
+
+        # Вектор правых частей
+        b = [5, 6, 2]
+
+        # Решение системы
+        x = solve_system(A, b)
+
+        # Вывод решения
+        print("Solution:", x)
+
+    except Exception as e:
+        print("Error:", str(e))
+
