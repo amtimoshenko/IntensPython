@@ -1,0 +1,10 @@
+print("введите количество чисел")
+a=int(input())
+b=[]
+for i in range (a):
+    c=float(input())
+    b.append(c)
+print(b)
+sm=sum(b)
+ar=sm/a
+print(round(ar,2))
