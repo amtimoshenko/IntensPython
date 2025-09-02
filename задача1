@@ -1,0 +1,11 @@
+a=3
+b=4
+c=5
+p=(a+b+c)/2
+s=abs(p*(p-a)*(p-b)*(p-c))
+ha=2*s//a
+hb=2*s//b
+hc=2*s//c
+print("ha=",ha)
+print("hb=",hb)
+print("hc=",hc)
