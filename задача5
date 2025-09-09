@@ -1,0 +1,16 @@
+
+num1=int(input("Введите знак_операции(1-сложение, 2-вычитание, 3-умножение, 4-деление): "))
+num2=float(input("введите операнд1 "))
+num3=float(input("введите операнд2 "))
+if num1==1:
+    res=num2+num3
+    print(res)
+if num1==2:
+    res=num2-num3
+    print(res)
+if num1==3:
+    res=num2*num3
+    print(res)
+if num1==4:
+    res=num2//num3
+    print(res)
