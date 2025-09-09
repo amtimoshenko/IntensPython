@@ -1,0 +1,31 @@
+matr=[[1,2,3,4,5],
+[6,7,8,9,10],
+[11,12,13,14,15],
+[16,17,18,19,20],
+[21,22,23,24,25]]
+total=0 
+n=len(matr)
+for i in range(n):
+    for j in range(n):
+        if i==0 or i==n-1 or j==0 or j==n-1:
+            total+=matr[i][j]
+print("Cумма А: ", total)
+tot=0 
+for i in range(n):
+    for j in range(n):
+        if i==j or i+j==n-1:
+            tot+=matr[i][j]
+print("Cумма Б: ", tot)
+tota=0
+for i in range(n):
+    for j in range(n):
+        if i==0 or i==n-1 or j==0 or j==n-1 or i==j or i+j==n-1:
+            tota+=matr[i][j]
+print("Cумма B: ", tota)
+to=0 
+center= n//2
+for i in range(n):
+    for j in range(n):
+        if abs(i-center)+abs(j-center)<=center:
+            to+=matr[i][j]
+print("Cумма Г: ", to)
