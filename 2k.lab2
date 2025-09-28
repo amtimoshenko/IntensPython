@@ -1,0 +1,26 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+x=np.arange(0,30,0.15)
+y=np.tan(x)
+
+plt.plot(x,y)
+plt.title('Тангенс')
+plt.xlabel('x')
+plt.ylabel('tg(x)')
+plt.grid(True)
+plt.show()
+
+x=np.arange(0,30,0.15)
+y1=np.tan(x)
+y2=1/np.tan(x)
+y3=y1*y2
+
+plt.plot(x,y1,color='purple', linestyle='-',linewidth=2,label='tg(x)')
+plt.plot(x,y2,color='red',linestyle='--',linewidth=2,label='ctg(x)')
+plt.plot(x,y3,color='green',linestyle=':',linewidth=3,label='ctg(x)*tg(x)')
+
+plt.legend()
+plt.ylim(-3.5,3.5)
+
+plt.show()
