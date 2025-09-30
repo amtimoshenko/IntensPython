@@ -3,6 +3,7 @@ import numpy as np
 
 x=np.arange(0,30,0.15)
 y=np.tan(x)
+plt.ylim(-3.5,3.5)
 
 plt.plot(x,y)
 plt.title('Тангенс')
