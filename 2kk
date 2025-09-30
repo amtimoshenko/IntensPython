@@ -1,0 +1,63 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Задача 11: y = x^2 - 3x + 2 и y = 2^x на интервале от -5 до 5
+x = np.linspace(-5, 5, 400)
+y1 = x**2 - 3*x + 2
+y2 = 2**x
+
+# Первая картинка: оба графика на одной плоскости
+
+plt.figure(figsize=(8, 6))
+plt.plot(x, y1, label='y = x^2 - 3x + 2')
+plt.plot(x, y2, label='y = 2^x')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Графики функций y = x^2 - 3x + 2 и y = 2^x')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# Вторая картинка:  графики с точками разным шагом
+plt.figure(figsize=(12, 8))
+
+# Первая строка: y = x^2 - 3x + 2
+plt.subplot(2, 3, 1)
+plt.plot(x, y1)
+plt.title('y = x^2 - 3x + 2, None')
+plt.grid(True)
+plt.ylim(-10, 30) # Ручная настройка, чтобы все точки были в графике
+
+plt.subplot(2, 3, 2)
+plt.plot(x, y1, marker='.', markevery=10)
+plt.title('y = x^2 - 3x + 2, markevery=10')
+plt.grid(True)
+plt.ylim(-10, 30)
+
+plt.subplot(2, 3, 3)
+plt.plot(x, y1, marker='.', markevery=30)
+plt.title('y = x^2 - 3x + 2, markevery=30')
+plt.grid(True)
+plt.ylim(-10, 30)
+
+# Вторая строка: y = 2^x
+plt.subplot(2, 3, 4)
+plt.plot(x, y2)
+plt.title('y = 2^x, None')
+plt.grid(True)
+plt.ylim(-1, 30)  # Ручная настройка, чтобы все точки были в графике
+
+plt.subplot(2, 3, 5)
+plt.plot(x, y2, marker='.', markevery=10)
+plt.title('y = 2^x, markevery=10')
+plt.grid(True)
+plt.ylim(-1, 30)
+
+plt.subplot(2, 3, 6)
+plt.plot(x, y2, marker='.', markevery=30)
+plt.title('y = 2^x, markevery=30')
+plt.grid(True)
+plt.ylim(-1, 30)
+
+plt.tight_layout()
+plt.show()
