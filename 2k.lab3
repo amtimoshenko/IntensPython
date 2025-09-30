@@ -1,14 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Определяем интервал x
 x = np.linspace(-5, 5, 400)
 
-# Вычисляем y
 y1 = x**2 - 3*x + 2
 y2 = 2**x
 
-# ----- Первый график: оба графика на одной плоскости -----
 plt.figure(figsize=(10, 6))
 
 plt.plot(x, y1, label='y = x^2 - 3x + 2')
@@ -18,34 +15,32 @@ plt.title('Графики функций y = x^2 - 3x + 2 и y = 2^x')
 plt.xlabel('x')
 plt.ylabel('y')
 
-plt.grid(True)
+plt.grid()
 plt.legend()
 
-plt.xlim(-5.5, 5.5)  # Добавил немного места по краям
-plt.ylim(-10, 35)   # Подобрал пределы для лучшей видимости
+plt.xlim(-5.5, 5.5)  
+plt.ylim(-10, 35)  
 
 plt.show()
 
-# ----- Второй график: y = x^2 - 3x + 2 с линией и точками -----
 plt.figure(figsize=(8, 5))
 plt.plot(x, y1, linestyle='-', marker='.', markevery=3, label='y = x^2 - 3x + 2')
 plt.title('График y = x^2 - 3x + 2 с линией и точками')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.grid(True)
+plt.grid()
 plt.legend()
 plt.xlim(-5.5, 5.5)
-plt.ylim(-5, 25)  # для центрирования графика
+plt.ylim(-5, 25)  
 plt.show()
 
-# ----- Третий график: y = 2^x с линией и точками (с отступом) -----
 plt.figure(figsize=(8, 5))
 plt.plot(x[3:], y2[3:], linestyle='-', marker='.', markevery=3, label='y = 2^x')
 plt.title('График y = 2^x с линией и точками (с отступом)')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.grid(True)
+plt.grid()
 plt.legend()
 plt.xlim(-5.5, 5.5)
-plt.ylim(-1, 35) # для центрирования графика
+plt.ylim(-1, 35)
 plt.show()
