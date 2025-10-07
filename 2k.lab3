@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+x=np.linspace(0,10,400)
+
 y1 = x**2 - 3*x + 2    
 y2 = 2**x           
 
@@ -16,8 +18,9 @@ plt.ylabel('y')
 plt.grid()
 plt.legend()
 
-plt.xlim(0, 10.5)
-plt.ylim(-3, 20)    
+plt.xlim(0, 10)
+plt.ylim(-3, 10)   
+plt.xticks(np.arange(min(x),max(x),1)) 
 plt.show()
 
 plt.subplot(2, 3, 1)
@@ -43,19 +46,19 @@ x_exp = x[start_index:]
 y2_exp = y2[start_index:]
 
 plt.subplot(2, 3, 4)
-plt.plot(x_exp, y2_exp, marker='.', markevery=5)
+plt.plot(x_exp, y2_exp, marker='.', markevery=(30,5))
 plt.title('y = 2^x, шаг=5')
 plt.ylim(-3, 100)   
 plt.grid()
 
 plt.subplot(2, 3, 5)
-plt.plot(x_exp, y2_exp, marker='.', markevery=25)
+plt.plot(x_exp, y2_exp, marker='.', markevery=(30,25))
 plt.title('y = 2^x, шаг=25')
 plt.ylim(-3, 100)
 plt.grid()
 
 plt.subplot(2, 3, 6)
-plt.plot(x_exp, y2_exp, marker='.', markevery=50)
+plt.plot(x_exp, y2_exp, marker='.', markevery=(30,50))
 plt.title('y = 2^x, шаг=50')
 plt.ylim(-3, 100)
 plt.grid()
