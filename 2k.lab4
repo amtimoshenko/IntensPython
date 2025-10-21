@@ -1,0 +1,52 @@
+import matplotlib.pyplot as plt
+
+temperatures = [-5, -3, 2, 10, 18, 22]  
+months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн']
+income_sources = ['Зарплата', 'Фриланс', 'Инвестиции', 'Аренда']
+income_percentages = [65, 15, 12, 8]
+orders = [2340, 2560, 2890, 3120]  
+os_names = ['Windows', 'macOS', 'Linux', 'Другие']
+os_percentages = [68, 17, 9, 6]
+
+
+# 1. Столбчатая диаграмма средней температуры по месяцам
+plt.figure(figsize=(10, 6))
+
+plt.barh(months, temperatures)
+plt.xlabel("Средняя температура (°C)")
+plt.ylabel("Месяц")
+plt.title("Средняя температура по месяцам (Январь - Июнь)")
+plt.show()
+
+# 2. Круговая диаграмма распределения источников дохода
+plt.figure(figsize=(8, 8))
+
+explode = [0.1, 0, 0, 0]
+plt.pie(income_percentages, labels=income_sources, autopct='%1.1f%%', startangle=90, explode=explode)
+plt.title("Распределение источников дохода")
+plt.show()
+
+
+# 3. Столбчатая диаграмма количества заказов по месяцам 
+
+plt.figure(figsize=(8, 6))
+
+total_orders = sum(orders)
+order_percentages = [order / total_orders * 100 for order in orders]
+
+plt.bar(months[:4], order_percentages, width = 0.4)
+plt.xlabel("Месяц")
+plt.ylabel("Доля заказов (%)")
+plt.title("Доля заказов по месяцам")
+plt.show()
+
+# 4. Круговая диаграмма долей операционных систем
+
+plt.figure(figsize=(8, 8))
+
+wedgeprops = {"width": 0.4, 'edgecolor': 'w'}  
+
+plt.pie(os_percentages, labels=os_names, autopct='%1.1f%%', startangle=90, wedgeprops=wedgeprops)
+
+plt.title("Доли операционных систем")
+plt.show()
