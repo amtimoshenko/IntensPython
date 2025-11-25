@@ -58,7 +58,7 @@ def paste():
 
 root = tk.Tk()
 root.title("Простой редактор - Без имени")
-root.geometry("800x600")
+root.geometry("1600x1200")
 
 menubar = tk.Menu(root)
 file_menu = tk.Menu(menubar, tearoff=0)
