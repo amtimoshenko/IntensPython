@@ -84,5 +84,4 @@ root.config(menu=menubar)
 text = tk.Text(root, wrap=tk.WORD, undo=True)
 text.pack(fill=tk.BOTH, expand=1)
 
-# запустить
 root.mainloop()
