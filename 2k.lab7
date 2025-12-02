@@ -1,0 +1,59 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+file_path = 'hotel_bookings.csv'
+
+if not os.path.exists(file_path):
+    print(f"Файл '{file_path}' не найден. Создаю демонстрационный DataFrame на основе изображения.")
+    data = {
+        'BookingID': [2001, 2002, 2003, 2004, 2005, 2006, 2007],
+        'GuestID': ['G4456', 'G7821', 'G3345', 'G4456', 'G9012', 'G7821', 'G5567'],
+        'RoomType': ['Standard', 'Deluxe', 'Suite', 'Standard', 'Deluxe', 'Standard', 'Suite'],
+        'Nights': [3, 5, 2, 7, 4, 3, 1],
+        'PricePerNight': [4500, 7800, 12000, 4500, 7800, 4500, 12000],
+        'TotalPrice': [13500, 39000, 24000, 31500, 31200, 13500, 12000],
+        'CheckInDate': ['2023-11-01', '2023-11-02', '2023-11-03', '2023-11-05', '2023-11-10', '2023-11-15', '2023-11-20'],
+        'HotelCity': ['Сочи', 'Москва', 'Санкт-Петербург', 'Сочи', 'Казань', 'Москва', 'Калининград']
+    }
+    df = pd.DataFrame(data)
+else:
+    df = pd.read_csv(file_path)
+    print(f"Данные успешно загружены из '{file_path}'.")
+
+print("\n--- Задание 1: Загрузка данных завершена. ---")
+
+
+print("\n--- Задание 2: Основная информация о DataFrame ---")
+df.info()
+
+print("\n--- Задание 2: Последние 5 строк DataFrame ---")
+print(df.tail())
+
+suite_bookings_df = df[df['RoomType'] == 'Suite'].copy()
+print("\n--- Задание 3: DataFrame только с бронированиями типа 'Suite' ---")
+print(suite_bookings_df)
+
+df['Revenue'] = df['Nights'] * df['PricePerNight']
+print("\n--- Задание 4: DataFrame после добавления столбца 'Revenue' (первые 5 строк) ---")
+print(df.head())
+
+city_revenue = df.groupby('HotelCity')['Revenue'].sum().sort_values(ascending=True)
+print("\n--- Задание 5 и 6: Общая выручка по каждому городу (отсортировано по возрастанию) ---")
+print(city_revenue)
+
+avg_price_by_room_type = df.groupby('RoomType')['TotalPrice'].mean()
+print("\n--- Задание 7: Средняя стоимость бронирования по каждому типу комнат ---")
+print(avg_price_by_room_type)
+
+room_type_counts = df['RoomType'].value_counts()
+print("\n--- Задание 8: Количество бронирований по типам комнат ---")
+print(room_type_counts)
+
+plt.figure(figsize=(8, 8))
+room_type_counts.plot.pie(autopct='%1.1f%%', startangle=90, cmap='viridis', explode=[0.05]*len(room_type_counts))
+plt.title('Распределение количества бронирований по типам комнат', fontsize=16)
+plt.ylabel('') # Убираем метку оси Y, которая по умолчанию отображает имя столбца
+plt.show()
+
+print("\n--- Все задания выполнены! ---")
