@@ -1,9 +1,7 @@
 import pandas as pd
-import numpy as np # Для работы с NaN, хотя pandas обычно справляется сам
+import numpy as np 
 
-# --- Инициализация данных из таблиц на изображении ---
 
-# Таблица 1: employees.csv
 employees_data = {
     'employee_id': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     'name': ['Иванов, Иван', 'Петрова, Мария', 'Сидоров, Алексей', 'Смирнова, Анна',
@@ -21,7 +19,6 @@ employees_data = {
 }
 df_employees = pd.DataFrame(employees_data)
 
-# Таблица 2: tasks.csv
 tasks_data = {
     'employee_id': [1, 1, 2, 3, 3, 4, 5, 6, 7, 8, 8],
     'task_complexity': ['Medium', 'Low', 'High', 'Medium', 'Low', 'High', 'Medium', 'High', 'Medium', 'Low', 'Medium'],
@@ -38,11 +35,6 @@ print("\ndf_tasks.head():")
 print(df_tasks.head())
 print("-" * 50)
 
-
-# --- 1. Загрузка и объединение данных ---
-# Объединяем df_employees с df_tasks по 'employee_id'.
-# 'how='left'' гарантирует, что все сотрудники (из df_employees) будут включены,
-# даже если у них нет задач. В этом случае столбцы из df_tasks будут содержать NaN.
 df_full = pd.merge(df_employees, df_tasks, on='employee_id', how='left')
 
 print("\n--- Задание 1: Объединенный DataFrame (df_full) ---")
@@ -51,26 +43,17 @@ print("\nИнформация о df_full (для проверки NaN после
 df_full.info()
 print("-" * 50)
 
-
-# --- 2. Анализ строковых данных: разделение имени и удаление исходного столбца ---
-# Разделяем столбец 'name' на 'last_name' и 'first_name'
 df_full[['last_name', 'first_name']] = df_full['name'].str.split(', ', expand=True)
 
-# Удаляем исходный столбец 'name'
 df_full.drop('name', axis=1, inplace=True)
 
 print("\n--- Задание 2: DataFrame после разделения имени и удаления столбца 'name' ---")
 print(df_full[['employee_id', 'last_name', 'first_name', 'department', 'task_complexity']].head())
 print("-" * 50)
 
-
-# --- 3. Работа с датами и вычислениями ---
-# Преобразуем столбцы с датами в формат datetime
 df_full['hire_date'] = pd.to_datetime(df_full['hire_date'])
 df_full['completed_date'] = pd.to_datetime(df_full['completed_date'])
 
-# Вычисляем days_after_hire: разница между completed_date и hire_date в днях.
-# Если completed_date был NaN, days_after_hire тоже будет NaN.
 df_full['days_after_hire'] = (df_full['completed_date'] - df_full['hire_date']).dt.days
 
 print("\n--- Задание 3: DataFrame после преобразования дат и добавления 'days_after_hire' ---")
@@ -78,13 +61,9 @@ print(df_full[['employee_id', 'hire_date', 'completed_date', 'days_after_hire']]
 print("-" * 50)
 
 
-# --- 4. Применение функции: расчет complexity_coeff ---
 def get_complexity_coeff(complexity_str):
-    """
-    Возвращает числовой коэффициент сложности на основе строкового значения.
-    Low=1, Medium=1.5, High=2.
-    """
-    if pd.isna(complexity_str): # Обработка NaN значений, если сотрудник не имел задач
+
+    if pd.isna(complexity_str):
         return np.nan
     if complexity_str == 'Low':
         return 1
@@ -92,22 +71,16 @@ def get_complexity_coeff(complexity_str):
         return 1.5
     elif complexity_str == 'High':
         return 2
-    return np.nan # На случай неизвестных значений
+    return np.nan 
 
-# Применяем функцию для создания нового столбца 'complexity_coeff'
 df_full['complexity_coeff'] = df_full['task_complexity'].apply(get_complexity_coeff)
 
-# Рассчитываем "взвешенные затраты" (weighted_spent)
 df_full['weighted_spent'] = df_full['hours_spent'] * df_full['complexity_coeff']
 
 print("\n--- Задание 4: DataFrame после добавления 'complexity_coeff' и 'weighted_spent' ---")
 print(df_full[['employee_id', 'task_complexity', 'complexity_coeff', 'hours_spent', 'weighted_spent']].head(10))
 print("-" * 50)
 
-
-# --- 5. Многоуровневая группировка ---
-# Группируем по department и task_complexity
-# Считаем среднее время выполнения (hours_spent) и общее количество задач
 grouped_by_dept_complexity = df_full.groupby(['department', 'task_complexity']).agg(
     average_hours_spent=('hours_spent', 'mean'),
     total_tasks=('task_complexity', 'count') # count считает только не-NaN значения
@@ -117,16 +90,12 @@ print("\n--- Задание 5: Среднее время выполнения и
 print(grouped_by_dept_complexity)
 print("-" * 50)
 
-
-# --- 6. Свод по сотрудникам ---
-# Группируем по employee_id, last_name, first_name (для читаемости)
 employee_summary = df_full.groupby(['employee_id', 'last_name', 'first_name']).agg(
     total_hours_spent=('hours_spent', 'sum'),
     total_weighted_spent=('weighted_spent', 'sum'),
     avg_complexity_coeff=('complexity_coeff', 'mean')
 )
 
-# Отсортировываем результат по убыванию 'total_weighted_spent'
 employee_summary_sorted = employee_summary.sort_values(by='total_weighted_spent', ascending=False)
 
 print("\n--- Задание 6: Свод по сотрудникам (отсортировано по убыванию взвешенных затрат) ---")
