@@ -1,0 +1,902 @@
+!pip install python-telegram-bot
+
+!pip install python-telegram-bot nest-asyncio
+
+ !pip install "python-telegram-bot[job-queue]" deep-translator nest-asyncio
+
+
+
+import logging
+import asyncio
+import random
+import string
+import math
+from datetime import datetime, timedelta
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+import re
+import sys
+
+# Настройка логирования
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# Проверяем, работаем ли в Jupyter/Colab и применяем nest_asyncio
+try:
+    import nest_asyncio
+    nest_asyncio.apply()
+    logger.info("nest_asyncio применен для работы в Jupyter/Colab")
+except ImportError:
+    logger.debug("nest_asyncio не установлен (не требуется для обычного Python)")
+
+# Попытка импорта переводчика
+translator_available = False
+try:
+    from deep_translator import GoogleTranslator
+    translator_available = True
+    logger.info("Переводчик успешно загружен")
+except ImportError as e:
+    translator_available = False
+    logger.warning(f"Переводчик недоступен: {e}. Установите deep-translator: pip install deep-translator")
+
+# Токен бота
+BOT_TOKEN = "8383858100:AAHgEM4FWWc7VvKRmJYd4kNMAHvmbFvJcR4"
+
+
+# Хранилище напоминаний (в реальном приложении лучше использовать БД)
+reminders = {}
+
+# Список шуток
+JOKES = [
+    "Почему программисты не любят природу? Слишком много багов!",
+    "Как называется программист, который не пьет кофе? Сонный.",
+    "Почему Python лучше Java? Потому что Python не нужно компилировать, чтобы понять, что код не работает!",
+    "Что говорит один программист другому? 'У меня дома работает!'",
+    "Сколько программистов нужно, чтобы вкрутить лампочку? Ни одного, это hardware проблема!",
+    "Почему программисты предпочитают темную тему? Потому что свет привлекает баги!",
+    "Что общего между программистом и волшебником? Оба работают с магией, которую никто не понимает.",
+    "Почему программисты всегда смеются в 256-й день года? Потому что это FF (hex)!",
+]
+
+# Список вдохновляющих цитат
+INSPIRATIONAL_QUOTES = [
+    "Успех — это способность идти от неудачи к неудаче, не теряя энтузиазма. — Уинстон Черчилль",
+    "Единственный способ делать великую работу — это любить то, что ты делаешь. — Стив Джобс",
+    "Будущее принадлежит тем, кто верит в красоту своих мечтаний. — Элеонора Рузвельт",
+    "Не важно, как медленно ты идешь, до тех пор, пока ты не останавливаешься. — Конфуций",
+    "Жизнь — это 10% того, что с тобой происходит, и 90% того, как ты на это реагируешь. — Чарльз Свиндолл",
+    "Единственный человек, которым вы должны быть лучше, чем вчера, — это вы сами. — Неизвестный автор",
+    "Ваше ограничение — это только ваше воображение. — Неизвестный автор",
+    "Великие вещи никогда не приходят из зоны комфорта. — Неизвестный автор",
+    "Мечтайте так, как будто будете жить вечно. Живите так, как будто умрете сегодня. — Джеймс Дин",
+    "Делай сегодня то, что другие не хотят, завтра будешь жить так, как другие не могут. — Джерри Райс"
+]
+
+# Хранилище оценок (в реальном приложении лучше использовать БД)
+ratings = {}
+
+def create_main_menu():
+    """Создает главное меню с кнопками"""
+    keyboard = [
+        [
+            InlineKeyboardButton("👋 Приветствие", callback_data="menu_greeting"),
+            InlineKeyboardButton("📋 Помощь", callback_data="menu_help")
+        ],
+        [
+            InlineKeyboardButton("ℹ️ Информация", callback_data="menu_info"),
+            InlineKeyboardButton("🕐 Московское время", callback_data="menu_time")
+        ],
+        [
+            InlineKeyboardButton("📢 Эхо", callback_data="menu_echo"),
+            InlineKeyboardButton("⭐ Оценить бота", callback_data="menu_rating")
+        ],
+        [
+            InlineKeyboardButton("💫 Вдохновляющая цитата", callback_data="menu_quote"),
+            InlineKeyboardButton("🎲 Случайное число", callback_data="menu_random")
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /start"""
+    user = update.effective_user
+    welcome_text = (
+        f"Привет, {user.first_name}! 👋\n\n"
+        f"Я многофункциональный бот с различными возможностями.\n"
+        f"Выберите функцию из меню ниже:"
+    )
+    await update.message.reply_text(
+        welcome_text,
+        reply_markup=create_main_menu()
+    )
+
+async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик нажатий на кнопки меню"""
+    query = update.callback_query
+    try:
+        await query.answer()
+    except Exception as e:
+        logger.error(f"Ошибка при ответе на callback: {e}")
+    
+    try:
+        if query.data == "menu_greeting":
+            user = update.effective_user
+            text = (
+                f"👋 **Приветствие**\n\n"
+                f"Привет, {user.first_name}! 👋\n\n"
+                f"Добро пожаловать в бота! Я готов помочь вам.\n"
+                f"Используйте меню для выбора функций."
+            )
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_help":
+            text = (
+                "📋 **Помощь**\n\n"
+                "**Основные команды:**\n"
+                "`/start` - главное меню\n"
+                "`/menu` - показать меню\n"
+                "`/help` - эта справка\n\n"
+                "**Доступные функции:**\n"
+                "👋 Приветствие\n"
+                "📋 Помощь\n"
+                "ℹ️ Информация\n"
+                "🕐 Московское время\n"
+                "📢 Эхо\n"
+                "⭐ Оценка работы бота\n"
+                "💫 Вдохновляющая цитата\n"
+                "🎲 Случайное число"
+            )
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_info":
+            text = (
+                "ℹ️ **Информация о боте**\n\n"
+                "Это многофункциональный Telegram бот.\n\n"
+                "**Версия:** 2.0\n"
+                "**Создано с помощью:** python-telegram-bot\n\n"
+                "Бот имеет множество полезных функций:\n"
+                "• Приветствие\n"
+                "• Помощь и информация\n"
+                "• Московское время\n"
+                "• Эхо-функция\n"
+                "• Оценка работы бота\n"
+                "• Вдохновляющие цитаты\n"
+                "• Генератор случайных чисел"
+            )
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_time":
+            try:
+                import pytz
+                moscow_tz = pytz.timezone('Europe/Moscow')
+                moscow_time = datetime.now(moscow_tz)
+                time_str = moscow_time.strftime("%Y-%m-%d %H:%M:%S")
+                text = f"🕐 **Московское время**\n\n{time_str}\n\nЧасовой пояс: Europe/Moscow (UTC+3)"
+            except ImportError:
+                # Если pytz не установлен, используем локальное время с поправкой
+                now = datetime.now()
+                # Примерная поправка на московское время (UTC+3)
+                moscow_time = now + timedelta(hours=3)
+                time_str = moscow_time.strftime("%Y-%m-%d %H:%M:%S")
+                text = f"🕐 **Московское время (приблизительно)**\n\n{time_str}\n\n*Для точного времени установите pytz: pip install pytz*"
+            except Exception as e:
+                logger.error(f"Ошибка при получении московского времени: {e}")
+                now = datetime.now()
+                time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                text = f"🕐 **Текущее время**\n\n{time_str}"
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_echo":
+            text = (
+                "📢 **Эхо**\n\n"
+                "Повторите ваш текст:\n"
+                "`/echo <ваш текст>`\n\n"
+                "Пример: `/echo Привет, мир!`"
+            )
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_rating":
+            text = (
+                "⭐ **Оценка работы бота**\n\n"
+                "Пожалуйста, оцените работу бота от 1 до 10:\n\n"
+                "Используйте команду:\n"
+                "`/rate <оценка>`\n\n"
+                "**Пример:**\n"
+                "`/rate 10` - отличная работа!\n"
+                "`/rate 8` - хорошо\n"
+                "`/rate 5` - нормально\n\n"
+                "Ваша оценка поможет улучшить бота! 🙏"
+            )
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_quote":
+            quote_text = random.choice(INSPIRATIONAL_QUOTES)
+            text = f"💫 **Вдохновляющая цитата**\n\n{quote_text}"
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        elif query.data == "menu_random":
+            number = random.randint(1, 100)
+            text = f"🎲 **Случайное число**\n\n**{number}**\n\n(от 1 до 100)\n\nИспользуйте `/random [мин] [макс]` для другого диапазона"
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=create_main_menu())
+        
+        else:
+            logger.warning(f"Неизвестный callback_data: {query.data}")
+            try:
+                await query.answer("Неизвестная команда", show_alert=True)
+            except:
+                pass
+    
+    except Exception as e:
+        logger.error(f"Ошибка в menu_handler: {e}", exc_info=True)
+        try:
+            await query.answer("Произошла ошибка. Попробуйте еще раз.", show_alert=True)
+        except:
+            pass
+
+async def set_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /remind"""
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text(
+            "Использование: /remind <время> <сообщение>\n"
+            "Пример: /remind 10:30 Купить молоко"
+        )
+        return
+    
+    try:
+        # Парсинг времени
+        args_text = ' '.join(context.args)
+        
+        # Попытка парсинга относительного времени (например, "через 5 минут")
+        relative_match = re.match(r'через\s+(\d+)\s+(минут|минуту|минуты|час|часа|часов)\s+(.+)', args_text, re.IGNORECASE)
+        if relative_match:
+            amount = int(relative_match.group(1))
+            unit = relative_match.group(2).lower()
+            message = relative_match.group(3)
+            
+            now = datetime.now()
+            if 'минут' in unit:
+                reminder_time = now + timedelta(minutes=amount)
+            elif 'час' in unit:
+                reminder_time = now + timedelta(hours=amount)
+            else:
+                raise ValueError("Неверный формат времени")
+            
+            reminder_id = len(reminders) + 1
+            reminders[reminder_id] = {
+                'user_id': update.effective_user.id,
+                'chat_id': update.effective_chat.id,
+                'message': message,
+                'time': reminder_time,
+                'original_time': f"через {amount} {unit}"
+            }
+            
+            await update.message.reply_text(
+                f"Напоминание установлено на {reminder_time.strftime('%d.%m.%Y %H:%M')}\n"
+                f"Сообщение: {message}"
+            )
+            return
+        
+        # Парсинг времени в формате HH:MM
+        time_str = context.args[0]
+        message = ' '.join(context.args[1:])
+        time_match = re.match(r'(\d{1,2}):(\d{2})', time_str)
+        if not time_match:
+            raise ValueError("Неверный формат времени")
+        
+        hour = int(time_match.group(1))
+        minute = int(time_match.group(2))
+        
+        if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+            raise ValueError("Неверное время")
+        
+        # Получаем текущее время
+        now = datetime.now()
+        reminder_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        
+        # Если время уже прошло сегодня, устанавливаем на завтра
+        if reminder_time <= now:
+            reminder_time += timedelta(days=1)
+        
+        reminder_id = len(reminders) + 1
+        reminders[reminder_id] = {
+            'user_id': update.effective_user.id,
+            'chat_id': update.effective_chat.id,
+            'message': message,
+            'time': reminder_time,
+            'original_time': time_str
+        }
+        
+        await update.message.reply_text(
+            f"Напоминание установлено на {reminder_time.strftime('%d.%m.%Y %H:%M')}\n"
+            f"Сообщение: {message}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Ошибка при установке напоминания: {e}")
+        await update.message.reply_text(
+            f"Ошибка при установке напоминания. Используйте формат: /remind 10:30 Сообщение"
+        )
+
+async def list_reminders(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показать все напоминания пользователя"""
+    user_id = update.effective_user.id
+    user_reminders = {k: v for k, v in reminders.items() if v['user_id'] == user_id}
+    
+    if not user_reminders:
+        await update.message.reply_text("У вас нет активных напоминаний")
+        return
+    
+    text = "Ваши напоминания:\n\n"
+    for reminder_id, reminder in user_reminders.items():
+        text += f"{reminder_id}. {reminder['time'].strftime('%d.%m.%Y %H:%M')} - {reminder['message']}\n"
+    
+    await update.message.reply_text(text)
+
+async def cancel_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отменить напоминание"""
+    if not context.args:
+        await update.message.reply_text("Использование: /cancel <номер>")
+        return
+    
+    try:
+        reminder_id = int(context.args[0])
+        user_id = update.effective_user.id
+        
+        if reminder_id in reminders and reminders[reminder_id]['user_id'] == user_id:
+            del reminders[reminder_id]
+            await update.message.reply_text(f"Напоминание {reminder_id} отменено")
+        else:
+            await update.message.reply_text("Напоминание не найдено")
+    except ValueError:
+        await update.message.reply_text("Неверный номер напоминания")
+
+async def translate_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /translate"""
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text(
+            "Использование: /translate <язык> <текст>\n"
+            "Пример: /translate en Привет\n"
+            "Языки: en (английский), es (испанский), fr (французский), de (немецкий), и т.д."
+        )
+        return
+    
+    if not translator_available:
+        await update.message.reply_text(
+            "Сервис перевода временно недоступен. Установите deep-translator."
+        )
+        return
+    
+    try:
+        target_lang = context.args[0].lower()
+        text = ' '.join(context.args[1:])
+        
+        # Переводим текст с повторными попытками
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                translator = GoogleTranslator(source='auto', target=target_lang)
+                translated_text = translator.translate(text)
+                
+                await update.message.reply_text(
+                    f"Исходный текст: {text}\n\n"
+                    f"Перевод ({target_lang}): {translated_text}"
+                )
+                return
+            except Exception as e:
+                logger.warning(f"Попытка {attempt + 1} перевода не удалась: {e}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2)
+                else:
+                    raise
+        
+    except Exception as e:
+        logger.error(f"Ошибка при переводе: {e}")
+        await update.message.reply_text(
+            f"Ошибка при переводе. Проверьте правильность кода языка и текста.\n"
+            f"Пример: /translate en Привет\n"
+            f"Ошибка: {str(e)}"
+        )
+
+async def check_reminders(context: ContextTypes.DEFAULT_TYPE):
+    """Проверка и отправка напоминаний"""
+    if not reminders:
+        return
+    
+    now = datetime.now()
+    to_remove = []
+    
+    # Создаем копию словаря для безопасной итерации
+    reminders_copy = dict(reminders)
+    
+    for reminder_id, reminder in reminders_copy.items():
+        # Проверяем, прошло ли время напоминания (с запасом в 1 минуту)
+        if reminder['time'] <= now:
+            try:
+                await context.bot.send_message(
+                    chat_id=reminder['chat_id'],
+                    text=f"🔔 Напоминание: {reminder['message']}"
+                )
+                to_remove.append(reminder_id)
+                logger.info(f"Напоминание {reminder_id} отправлено пользователю {reminder['user_id']}")
+            except Exception as e:
+                logger.error(f"Ошибка при отправке напоминания {reminder_id}: {e}")
+                # Удаляем напоминание даже при ошибке, чтобы не спамить
+                to_remove.append(reminder_id)
+    
+    # Удаляем отправленные напоминания
+    for reminder_id in to_remove:
+        if reminder_id in reminders:
+            del reminders[reminder_id]
+
+async def reminder_job(context: ContextTypes.DEFAULT_TYPE):
+    """Задача для проверки напоминаний"""
+    await check_reminders(context)
+
+# Функция 1: Генератор паролей
+async def generate_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Генератор безопасных паролей"""
+    length = 12
+    strong = False
+    
+    if context.args:
+        try:
+            if len(context.args) > 0:
+                length = int(context.args[0])
+                if length < 4:
+                    length = 4
+                elif length > 50:
+                    length = 50
+            if len(context.args) > 1 and context.args[1].lower() == 'strong':
+                strong = True
+        except ValueError:
+            await update.message.reply_text("Использование: /password [длина] [strong]\nПример: /password 16 strong")
+            return
+    
+    if strong:
+        # Усиленный пароль: буквы, цифры, спецсимволы
+        characters = string.ascii_letters + string.digits + "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    else:
+        # Обычный пароль: буквы и цифры
+        characters = string.ascii_letters + string.digits
+    
+    password = ''.join(random.choice(characters) for _ in range(length))
+    await update.message.reply_text(
+        f"🔐 Ваш пароль ({length} символов):\n\n`{password}`\n\n"
+        f"⚠️ Сохраните его в безопасном месте!",
+        parse_mode='Markdown'
+    )
+
+# Функция 2: Калькулятор
+async def calculator(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Простой калькулятор"""
+    if not context.args:
+        await update.message.reply_text(
+            "Использование: /calc <выражение>\n"
+            "Примеры:\n"
+            "`/calc 2 + 2`\n"
+            "`/calc 10 * 5`\n"
+            "`/calc sqrt(16)`\n"
+            "`/calc sin(30)`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    try:
+        expression = ' '.join(context.args)
+        original_expr = expression
+        
+        # Безопасная замена функций (только если они не являются частью других слов)
+        import re as regex_module
+        expression = regex_module.sub(r'\bsqrt\b', 'math.sqrt', expression)
+        expression = regex_module.sub(r'\bsin\b', 'math.sin', expression)
+        expression = regex_module.sub(r'\bcos\b', 'math.cos', expression)
+        expression = regex_module.sub(r'\btan\b', 'math.tan', expression)
+        expression = regex_module.sub(r'\bpi\b', 'math.pi', expression)
+        expression = regex_module.sub(r'\be\b', 'math.e', expression)
+        
+        # Вычисляем результат
+        result = eval(expression, {"__builtins__": {}, "math": math})
+        
+        # Форматируем результат
+        if isinstance(result, float):
+            if result.is_integer():
+                result = int(result)
+            else:
+                result = round(result, 10)
+        
+        await update.message.reply_text(
+            f"🧮 **Результат:**\n\n`{original_expr}` = **{result}**",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Ошибка в калькуляторе: {e}")
+        await update.message.reply_text(
+            f"❌ Ошибка вычисления: {str(e)}\n\n"
+            f"Проверьте правильность выражения.\n"
+            f"Пример: `/calc 2 + 2`",
+            parse_mode='Markdown'
+        )
+
+# Функция 3: Случайная шутка
+async def random_joke(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет случайную шутку"""
+    joke = random.choice(JOKES)
+    await update.message.reply_text(f"😄 {joke}")
+
+# Функция 4: Конвертер единиц
+async def unit_converter(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Конвертер единиц измерения"""
+    if not context.args or len(context.args) < 4:
+        await update.message.reply_text(
+            "Использование: /convert <значение> <из> <to> <в>\n"
+            "Примеры:\n"
+            "`/convert 100 km to miles`\n"
+            "`/convert 25 celsius to fahrenheit`\n"
+            "`/convert 1 kg to pounds`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    try:
+        value = float(context.args[0])
+        unit_from = context.args[1].lower()
+        unit_to = context.args[3].lower()
+        
+        # Конвертация длины
+        length_units = {
+            'km': 1000, 'm': 1, 'cm': 0.01, 'mm': 0.001,
+            'miles': 1609.34, 'feet': 0.3048, 'inches': 0.0254
+        }
+        
+        # Конвертация веса
+        weight_units = {
+            'kg': 1, 'g': 0.001, 'pounds': 0.453592, 'ounces': 0.0283495
+        }
+        
+        # Конвертация температуры
+        if unit_from == 'celsius' and unit_to == 'fahrenheit':
+            result = (value * 9/5) + 32
+            await update.message.reply_text(f"🌡️ {value}°C = {result:.2f}°F")
+            return
+        elif unit_from == 'fahrenheit' and unit_to == 'celsius':
+            result = (value - 32) * 5/9
+            await update.message.reply_text(f"🌡️ {value}°F = {result:.2f}°C")
+            return
+        
+        # Конвертация длины
+        if unit_from in length_units and unit_to in length_units:
+            meters = value * length_units[unit_from]
+            result = meters / length_units[unit_to]
+            await update.message.reply_text(f"📏 {value} {unit_from} = {result:.4f} {unit_to}")
+            return
+        
+        # Конвертация веса
+        if unit_from in weight_units and unit_to in weight_units:
+            kg = value * weight_units[unit_from]
+            result = kg / weight_units[unit_to]
+            await update.message.reply_text(f"⚖️ {value} {unit_from} = {result:.4f} {unit_to}")
+            return
+        
+        await update.message.reply_text(
+            "❌ Неподдерживаемые единицы измерения.\n\n"
+            "Длина: km, m, cm, mm, miles, feet, inches\n"
+            "Вес: kg, g, pounds, ounces\n"
+            "Температура: celsius, fahrenheit"
+        )
+    except (ValueError, IndexError) as e:
+        await update.message.reply_text("❌ Ошибка в формате команды. Используйте: /convert <значение> <из> to <в>")
+
+# Функция 5: Случайное число
+async def random_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Генератор случайных чисел"""
+    if not context.args:
+        number = random.randint(1, 100)
+        await update.message.reply_text(f"🎲 Случайное число (1-100): **{number}**", parse_mode='Markdown')
+        return
+    
+    try:
+        if len(context.args) == 1:
+            max_num = int(context.args[0])
+            number = random.randint(1, max_num)
+            await update.message.reply_text(f"🎲 Случайное число (1-{max_num}): **{number}**", parse_mode='Markdown')
+        elif len(context.args) == 2:
+            min_num = int(context.args[0])
+            max_num = int(context.args[1])
+            if min_num > max_num:
+                min_num, max_num = max_num, min_num
+            number = random.randint(min_num, max_num)
+            await update.message.reply_text(f"🎲 Случайное число ({min_num}-{max_num}): **{number}**", parse_mode='Markdown')
+        else:
+            await update.message.reply_text("Использование: /random [мин] [макс]\nПример: /random 1 100")
+    except ValueError:
+        await update.message.reply_text("❌ Ошибка: используйте целые числа\nПример: /random 1 100")
+
+# Функция 6: Время в часовых поясах
+async def timezone_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает время в разных часовых поясах"""
+    timezones = {
+        'moscow': ('Europe/Moscow', 'Москва'),
+        'new york': ('America/New_York', 'Нью-Йорк'),
+        'tokyo': ('Asia/Tokyo', 'Токио'),
+        'london': ('Europe/London', 'Лондон'),
+        'paris': ('Europe/Paris', 'Париж'),
+        'beijing': ('Asia/Shanghai', 'Пекин'),
+        'sydney': ('Australia/Sydney', 'Сидней'),
+        'dubai': ('Asia/Dubai', 'Дубай'),
+    }
+    
+    if not context.args:
+        # Показываем время в основных городах
+        now = datetime.now()
+        text = "🕐 **Время в основных городах:**\n\n"
+        
+        for key, (tz_name, city_name) in timezones.items():
+            try:
+                import pytz
+                tz = pytz.timezone(tz_name)
+                local_time = datetime.now(tz)
+                text += f"**{city_name}**: {local_time.strftime('%H:%M:%S %d.%m.%Y')}\n"
+            except:
+                text += f"**{city_name}**: (недоступно)\n"
+        
+        await update.message.reply_text(text, parse_mode='Markdown')
+        return
+    
+    city = ' '.join(context.args).lower()
+    
+    if city in timezones:
+        try:
+            import pytz
+            tz_name, city_name = timezones[city]
+            tz = pytz.timezone(tz_name)
+            local_time = datetime.now(tz)
+            await update.message.reply_text(
+                f"🕐 **{city_name}**\n\n"
+                f"Время: {local_time.strftime('%H:%M:%S')}\n"
+                f"Дата: {local_time.strftime('%d.%m.%Y')}\n"
+                f"Часовой пояс: {tz_name}",
+                parse_mode='Markdown'
+            )
+        except ImportError:
+            await update.message.reply_text(
+                "❌ Для этой функции требуется библиотека pytz.\n"
+                "Установите: `pip install pytz`",
+                parse_mode='Markdown'
+            )
+        except Exception as e:
+            await update.message.reply_text(f"❌ Ошибка: {str(e)}")
+    else:
+        available = ', '.join([name for _, (_, name) in timezones.items()])
+        await update.message.reply_text(
+            f"❌ Город не найден.\n\n"
+            f"Доступные города: {available}\n"
+            f"Пример: /timezone Moscow"
+        )
+
+# Функция эхо
+async def echo_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Повторяет текст пользователя"""
+    if context.args:
+        text = ' '.join(context.args)
+        await update.message.reply_text(f"📢 Эхо: {text}")
+    else:
+        await update.message.reply_text("Использование: /echo <ваш текст>")
+
+
+# Функция вдохновляющей цитаты
+async def quote_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет случайную вдохновляющую цитату"""
+    quote_text = random.choice(INSPIRATIONAL_QUOTES)
+    await update.message.reply_text(f"💫 {quote_text}")
+
+# Функция информации
+async def info_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет информацию о боте"""
+    info_text = (
+        "ℹ️ **Информация о боте**\n\n"
+        "Это многофункциональный Telegram бот.\n\n"
+        "**Версия:** 2.0\n"
+        "**Создано с помощью:** python-telegram-bot\n\n"
+        "Бот имеет множество полезных функций:\n"
+        "• Приветствие\n"
+        "• Помощь и информация\n"
+        "• Московское время\n"
+        "• Эхо-функция\n"
+        "• Оценка работы бота\n"
+        "• Вдохновляющие цитаты\n"
+        "• Генератор случайных чисел"
+    )
+    await update.message.reply_text(info_text, parse_mode='Markdown')
+
+# Функция текущего времени (московское)
+async def time_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет московское время"""
+    try:
+        import pytz
+        moscow_tz = pytz.timezone('Europe/Moscow')
+        moscow_time = datetime.now(moscow_tz)
+        time_str = moscow_time.strftime("%Y-%m-%d %H:%M:%S")
+        await update.message.reply_text(
+            f"🕐 **Московское время**\n\n{time_str}\n\nЧасовой пояс: Europe/Moscow (UTC+3)",
+            parse_mode='Markdown'
+        )
+    except ImportError:
+        # Если pytz не установлен, используем локальное время с поправкой
+        now = datetime.now()
+        moscow_time = now + timedelta(hours=3)
+        time_str = moscow_time.strftime("%Y-%m-%d %H:%M:%S")
+        await update.message.reply_text(
+            f"🕐 **Московское время (приблизительно)**\n\n{time_str}\n\n*Для точного времени установите pytz: pip install pytz*",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при получении московского времени: {e}")
+        now = datetime.now()
+        time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+        await update.message.reply_text(f"🕐 Текущее время: {time_str}")
+
+# Функция оценки работы бота
+async def rate_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /rate для оценки работы бота"""
+    if not context.args:
+        await update.message.reply_text(
+            "⭐ **Оценка работы бота**\n\n"
+            "Пожалуйста, оцените работу бота от 1 до 10:\n\n"
+            "Использование: `/rate <оценка>`\n\n"
+            "**Пример:**\n"
+            "`/rate 10` - отличная работа!\n"
+            "`/rate 8` - хорошо\n"
+            "`/rate 5` - нормально",
+            parse_mode='Markdown'
+        )
+        return
+    
+    try:
+        rating = int(context.args[0])
+        
+        if rating < 1 or rating > 10:
+            await update.message.reply_text(
+                "❌ Оценка должна быть от 1 до 10.\n"
+                "Использование: `/rate <оценка>`\n"
+                "Пример: `/rate 10`",
+                parse_mode='Markdown'
+            )
+            return
+        
+        user_id = update.effective_user.id
+        user_name = update.effective_user.first_name
+        
+        # Сохраняем оценку
+        ratings[user_id] = {
+            'rating': rating,
+            'user_name': user_name,
+            'timestamp': datetime.now()
+        }
+        
+        # Благодарные ответы в зависимости от оценки
+        if rating >= 9:
+            response = (
+                f"🙏 **Спасибо большое, {user_name}!**\n\n"
+                f"Ваша оценка: **{rating}/10** ⭐\n\n"
+                f"Очень рад, что вам нравится! Это мотивирует меня становиться лучше! 🚀"
+            )
+        elif rating >= 7:
+            response = (
+                f"🙏 **Спасибо, {user_name}!**\n\n"
+                f"Ваша оценка: **{rating}/10** ⭐\n\n"
+                f"Буду стараться улучшаться! 💪"
+            )
+        elif rating >= 5:
+            response = (
+                f"🙏 **Спасибо за оценку, {user_name}!**\n\n"
+                f"Ваша оценка: **{rating}/10** ⭐\n\n"
+                f"Учту ваше мнение и буду работать над улучшениями! 📈"
+            )
+        else:
+            response = (
+                f"🙏 **Спасибо за честную оценку, {user_name}!**\n\n"
+                f"Ваша оценка: **{rating}/10** ⭐\n\n"
+                f"Понимаю, что есть над чем работать. Буду стараться стать лучше! 💪"
+            )
+        
+        await update.message.reply_text(response, parse_mode='Markdown')
+        logger.info(f"Пользователь {user_name} (ID: {user_id}) оценил бота на {rating}/10")
+        
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Оценка должна быть числом от 1 до 10.\n"
+            "Использование: `/rate <оценка>`\n"
+            "Пример: `/rate 10`",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при обработке оценки: {e}")
+        await update.message.reply_text("❌ Произошла ошибка при обработке оценки. Попробуйте еще раз.")
+
+# Команда для показа меню
+async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает главное меню"""
+    await update.message.reply_text(
+        "📋 **Главное меню**\n\nВыберите функцию:",
+        reply_markup=create_main_menu(),
+        parse_mode='Markdown'
+    )
+
+# Команда помощи
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает справку"""
+    help_text = (
+        "📋 **Справка по командам**\n\n"
+        "**Основные:**\n"
+        "`/start` - начать работу с ботом\n"
+        "`/menu` - показать меню\n"
+        "`/help` - эта справка\n\n"
+        "**Функции:**\n"
+        "👋 Приветствие - через меню\n"
+        "📋 Помощь - `/help`\n"
+        "ℹ️ Информация - `/info`\n"
+                "🕐 Московское время - `/time`\n"
+                "📢 Эхо - `/echo <текст>`\n"
+                "⭐ Оценить бота - `/rate <оценка>`\n"
+                "💫 Вдохновляющая цитата - `/quote`\n"
+                "🎲 Случайное число - `/random`\n\n"
+        "Используйте `/menu` для интерактивного меню!"
+    )
+    await update.message.reply_text(help_text, parse_mode='Markdown')
+
+def main():
+    """Основная функция"""
+    # Создаем приложение
+    application = Application.builder().token(BOT_TOKEN).build()
+    
+    # Регистрируем обработчики команд
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("menu", show_menu))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("info", info_command))
+    application.add_handler(CommandHandler("time", time_command))
+    application.add_handler(CommandHandler("echo", echo_command))
+    application.add_handler(CommandHandler("rate", rate_bot))
+    application.add_handler(CommandHandler("quote", quote_command))
+    application.add_handler(CommandHandler("random", random_number))
+    
+    # Дополнительные функции (старые, но оставлены для совместимости)
+    application.add_handler(CommandHandler("remind", set_reminder))
+    application.add_handler(CommandHandler("list", list_reminders))
+    application.add_handler(CommandHandler("cancel", cancel_reminder))
+    application.add_handler(CommandHandler("translate", translate_text))
+    
+    # Обработчик кнопок меню
+    application.add_handler(CallbackQueryHandler(menu_handler))
+    
+    # Запускаем задачу проверки напоминаний каждую минуту
+    job_queue = application.job_queue
+    if job_queue is not None:
+        job_queue.run_repeating(reminder_job, interval=60, first=10)
+        logger.info("JobQueue настроен для напоминаний")
+    else:
+        logger.warning("JobQueue недоступен. Напоминания не будут работать. Установите: pip install 'python-telegram-bot[job-queue]'")
+    
+    # Запускаем бота
+    logger.info("Бот запущен")
+    
+    # Используем run_polling - nest_asyncio должен решить проблему с event loop в Jupyter
+    try:
+        application.run_polling(
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=True,
+            stop_signals=None  # Отключаем обработку сигналов для Jupyter
+        )
+    except RuntimeError as e:
+        if "event loop is already running" in str(e):
+            logger.error("Ошибка event loop. Убедитесь, что установлен nest-asyncio: pip install nest-asyncio")
+            logger.error("Или запустите бота вне Jupyter/Colab")
+            raise
+        else:
+            raise
+
+if __name__ == '__main__':
+    main()
